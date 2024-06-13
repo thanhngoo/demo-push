@@ -1,0 +1,23 @@
+{
+  "name": "automation_test_server",
+  "version": "1.1.17",
+  "description": "LMS Backend for CG Slate 3.0",
+  "main": "app.js",
+  "engines": {
+    "node": ">=8.3.0"
+  },
+  "config": {},
+  "scripts": {
+    "check:version": "artillery version",
+    "start:dev": "artillery run -e dev license.yml"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": "Thanh Ngo",
+  "license": "ISC",
+  "dependencies": {
+    "artillery-plugin-influxdb": "^0.9.0"
+  }
+}

@@ -1,0 +1,561 @@
+
+config:
+  http:
+    defaults:
+      headers:
+        Authorization: 'Bearer {{ authToken }}'
+  environments:
+    dev:
+      target: "https://test-idp-api.cgslate.com/api/"
+      phases:
+        - duration: 1
+          arrivalRate: 1
+          maxVusers: 50
+          name: "Khoi Le {{ $environment }}"
+      payload:
+        # path is relative to the location of the test script
+        path: "login.{{ $environment }}.csv"
+        fields:
+          - "studentCode"
+          - "studentPassword"
+          - "programName"
+        cast: false
+        skipHeader : true
+        # loadAll: true
+        delimiter: ","
+        skipEmptyLines: true
+        # name: loginStudent # refer to the data as "loginStudent"
+      processor: "./testing.{{ $environment }}.js"
+
+    prod_test:
+      target: "https://test-streaming-api.cgslate.com/api"
+      phases:
+        - duration: 1
+          arrivalRate: 1
+          maxVusers: 50
+          name: "Khoi Le prod_test"
+
+    prod:
+      target: "https://test-streaming-api.cgslate.com/api"
+      phases:
+        - duration: 1
+          arrivalRate: 1
+          maxVusers: 50
+          name: "Khoi Le prod"
+    
+scenarios:
+  - flow:
+      - log: "Current environment is set to: {{ $environment }}"
+      # - loop:
+      #   - post:
+      #       url: "/student/sign-in"
+      #       beforeRequest: "logInputHeaders"
+      #       afterResponse: "logHeaders"
+      #       json:
+      #         programName: "{{ $loopElement.programName }}"
+      #         studentCode: "{{ $loopElement.studentCode }}"
+      #         studentPassword: "{{ $loopElement.studentPassword }}"
+      #       capture: 
+      #         json: $.authToken
+      #         as: authToken
+      #   over: loginStudent
+
+      - post:
+          url: "/student/sign-in"
+          # beforeRequest: "logInputHeaders"
+          json:
+            programName: "{{ programName }}"
+            studentCode: "{{ studentCode }}"
+            studentPassword: "{{ studentPassword }}"
+          capture: 
+            json: $.authToken
+            as: authToken
+
+      # - function: "testFunction"
+
+      - get:
+          url: "/assessment/category-list"
+          headers: 
+            Authorization: "Bearer {{ authToken }}"
+          capture:
+          - json: $.categories.0.id
+            as: categoryId
+      - log: 'name is {{ categoryId }}'      
+
+      - get:
+          url: "/assessment/task-list"
+          qs:
+            task_type: "MOCK_TEST"
+            category_id: "{{ categoryId }}"
+            medium_id: "1"
+          
+          headers: 
+            Authorization: "Bearer {{ authToken }}"
+          capture:
+          - json: $.tasks.0.task_id
+            as: task_id
+          - json: $.tasks.0.package_id
+            as: package_id
+      - log: 'taskId is {{ task_id }}'
+      - log: 'packageId is {{ package_id }}'
+# - chỉ chạy sau khi bài test đã xong
+      # - get:
+      #     url: '/assessment/task-summary'
+      #     afterResponse: "logHeaders"
+      #     qs:
+      #       task_id: "{{ task_id }}"
+      #     headers:
+      #       Authorization: "Bearer {{ authToken }}"
+      - get:
+          url: '/assessment/question-stats-list'
+          # afterResponse: "logHeaders"
+          qs:
+            task_id: "{{ task_id}}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - get: 
+          url: '/assessment/get-stat'
+          # afterResponse: "logHeaders"
+          qs:
+            task_id: "{{ task_id }}"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: '/assessment/insert-all-stats'
+          afterResponse: "logHeaders"
+          json:
+            task_stat:
+              student_id: 261516
+              task_id: 519
+              package_setting_id: 209
+              attempt_no: 1
+              round: 1
+              performance: 0
+              question_attempted: 0
+              question_skipped: 0
+              question_correct: 0
+              question_incorrect: 0
+              is_diagnostic: 0
+              is_completed: 0
+              time_spent: 0
+              total_time_spent: 0
+              summary_time: 0
+              question_reviewed: 0
+              marks_obtained: 0
+              accuracy: 0
+            subject_stat:
+              student_id: 261516
+              subject_id: 258
+              tasks_completed: 0
+              avg_performance:
+              topics_completed: 0
+              stages_completed: 0
+              time_spent: 0
+            user_stat:
+              student_id: 261516
+              content_id: 519
+              attempt_no: 1
+              start_time: '2024-01-18 09:08:12.000'
+              end_time:
+              time_spent: 0
+              total_time_spent: 0
+              progress: 0
+              is_completed: 0
+              content_type: MOD_TASK
+            stage_stat:
+              student_id: 261516
+              stage_id: 520
+              time_spent: 0
+            package_stat:
+              student_id: 261516
+              assessment_package_id: 245
+              subjects_completed: 0
+              tasks_completed: 0
+              stages_completed: 0
+              topics_completed: 0
+              avg_performance:
+            completion_stats:
+            - student_id: 261516
+              content_id: 519
+              completion: 0
+              time_spent: 0
+              is_completed: 0
+              started_on: '2024-01-18 09:08:12.000'
+              last_seen: '2024-01-18 09:08:12.000'
+              content_type: MOD_TASK
+            - student_id: 261516
+              content_id: 520
+              completion: 0
+              time_spent: 0
+              is_completed: 0
+              started_on: '2024-01-18 09:08:12.000'
+              last_seen: '2024-01-18 09:08:12.000'
+              content_type: STAGE
+            - student_id: 261516
+              content_id: 258
+              completion: 0
+              time_spent: 0
+              is_completed: 0
+              started_on: '2024-01-18 09:08:12.000'
+              last_seen: '2024-01-18 09:08:12.000'
+              content_type: TOPIC
+            - student_id: 261516
+              content_id: 258
+              completion: 0
+              time_spent: 0
+              is_completed: 0
+              started_on: '2024-01-18 09:08:12.000'
+              last_seen: '2024-01-18 09:08:12.000'
+              content_type: SUBJECT
+            session_module_stat:
+              student_id: 261516
+              session_id: 90b84d72-802e-4c74-bcd8-1c59487e2efb
+              content_id: 519
+              content_type: MOD_TASK
+              attempt_no: 1
+              duration: 0
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - get:
+          url: '/assessment/question-list'
+          qs:
+            task_id: "{{ task_id }}"
+            package_id: "{{ package_id }}"
+          afterResponse: "logHeaders"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: '/assessment/insert-all-stats'
+          afterResponse: "logHeaders"
+          json:
+            stats_data:
+            - student_id: 261516
+              question_id: 21169
+              attempt_no: 1
+              round: 1
+              answer:
+              score: 0
+              time_spent: 0
+              is_correct: 0
+              is_hint_taken: 0
+              is_explanation_viewed: 0
+              medium_id: 1
+              explanation_time: 0
+              hint_time: 0
+              is_submitted: 0
+              is_translation_viewed: 0
+              start_time:
+              end_time:
+              is_skipped: 0
+              total_time_spent: 0
+              max_score: 0
+              is_reviewed: 0
+              is_answered_later: 0
+              task_id: 519
+              mark: 1
+              negative_mark: 5
+            - student_id: 261516
+              question_id: 21064
+              attempt_no: 1
+              round: 1
+              answer:
+              score: 0
+              time_spent: 0
+              is_correct: 0
+              is_hint_taken: 0
+              is_explanation_viewed: 0
+              medium_id: 1
+              explanation_time: 0
+              hint_time: 0
+              is_submitted: 0
+              is_translation_viewed: 0
+              start_time:
+              end_time:
+              is_skipped: 0
+              total_time_spent: 0
+              max_score: 0
+              is_reviewed: 0
+              is_answered_later: 0
+              task_id: 519
+              mark: 2
+              negative_mark: 10
+            - student_id: 261516
+              question_id: 21141
+              attempt_no: 1
+              round: 1
+              answer:
+              score: 0
+              time_spent: 0
+              is_correct: 0
+              is_hint_taken: 0
+              is_explanation_viewed: 0
+              medium_id: 1
+              explanation_time: 0
+              hint_time: 0
+              is_submitted: 0
+              is_translation_viewed: 0
+              start_time:
+              end_time:
+              is_skipped: 0
+              total_time_spent: 0
+              max_score: 0
+              is_reviewed: 0
+              is_answered_later: 0
+              task_id: 519
+              mark: 3
+              negative_mark: 5
+            - student_id: 261516
+              question_id: 20686
+              attempt_no: 1
+              round: 1
+              answer:
+              score: 0
+              time_spent: 0
+              is_correct: 0
+              is_hint_taken: 0
+              is_explanation_viewed: 0
+              medium_id: 1
+              explanation_time: 0
+              hint_time: 0
+              is_submitted: 0
+              is_translation_viewed: 0
+              start_time:
+              end_time:
+              is_skipped: 0
+              total_time_spent: 0
+              max_score: 0
+              is_reviewed: 0
+              is_answered_later: 0
+              task_id: 519
+              mark: 4
+              negative_mark: 10
+            - student_id: 261516
+              question_id: 21140
+              attempt_no: 1
+              round: 1
+              answer:
+              score: 0
+              time_spent: 0
+              is_correct: 0
+              is_hint_taken: 0
+              is_explanation_viewed: 0
+              medium_id: 1
+              explanation_time: 0
+              hint_time: 0
+              is_submitted: 0
+              is_translation_viewed: 0
+              start_time:
+              end_time:
+              is_skipped: 0
+              total_time_spent: 0
+              max_score: 0
+              is_reviewed: 0
+              is_answered_later: 0
+              task_id: 519
+              mark: 5
+              negative_mark: 0
+            - student_id: 261516
+              question_id: 64
+              attempt_no: 1
+              round: 1
+              answer:
+              score: 0
+              time_spent: 0
+              is_correct: 0
+              is_hint_taken: 0
+              is_explanation_viewed: 0
+              medium_id: 1
+              explanation_time: 0
+              hint_time: 0
+              is_submitted: 0
+              is_translation_viewed: 0
+              start_time:
+              end_time:
+              is_skipped: 0
+              total_time_spent: 0
+              max_score: 0
+              is_reviewed: 0
+              is_answered_later: 0
+              task_id: 519
+              mark: 6
+              negative_mark: 0
+            - student_id: 261516
+              question_id: 20811
+              attempt_no: 1
+              round: 1
+              answer:
+              score: 0
+              time_spent: 0
+              is_correct: 0
+              is_hint_taken: 0
+              is_explanation_viewed: 0
+              medium_id: 1
+              explanation_time: 0
+              hint_time: 0
+              is_submitted: 0
+              is_translation_viewed: 0
+              start_time:
+              end_time:
+              is_skipped: 0
+              total_time_spent: 0
+              max_score: 0
+              is_reviewed: 0
+              is_answered_later: 0
+              task_id: 519
+              mark: 7
+              negative_mark: 0
+            - student_id: 261516
+              question_id: 20930
+              attempt_no: 1
+              round: 1
+              answer:
+              score: 0
+              time_spent: 0
+              is_correct: 0
+              is_hint_taken: 0
+              is_explanation_viewed: 0
+              medium_id: 1
+              explanation_time: 0
+              hint_time: 0
+              is_submitted: 0
+              is_translation_viewed: 0
+              start_time:
+              end_time:
+              is_skipped: 0
+              total_time_spent: 0
+              max_score: 0
+              is_reviewed: 0
+              is_answered_later: 0
+              task_id: 519
+              mark: 8
+              negative_mark: 0
+            - student_id: 261516
+              question_id: 21114
+              attempt_no: 1
+              round: 1
+              answer:
+              score: 0
+              time_spent: 0
+              is_correct: 0
+              is_hint_taken: 0
+              is_explanation_viewed: 0
+              medium_id: 1
+              explanation_time: 0
+              hint_time: 0
+              is_submitted: 0
+              is_translation_viewed: 0
+              start_time:
+              end_time:
+              is_skipped: 0
+              total_time_spent: 0
+              max_score: 0
+              is_reviewed: 0
+              is_answered_later: 0
+              task_id: 519
+              mark: 9
+              negative_mark: 0
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+            #update câu hỏi 1
+      - put:
+          url: '/assessment/update-question-stats'
+          afterResponse: "logHeaders"
+          json:
+            update:
+              attempt_no: 1
+              round: 1
+              answer: '["300.75"]'
+              score: 0
+              time_spent: 11000
+              is_correct: 1
+              is_hint_taken: 0
+              is_explanation_viewed: 0
+              medium_id: 1
+              explanation_time: 0
+              hint_time: 0
+              is_submitted: 1
+              is_translation_viewed: 0
+              start_time: '2024-01-18 12:05:42.000'
+              end_time: '2024-01-18 12:05:55.000'
+              is_skipped: 0
+              total_time_spent: 13000
+              max_score: 0
+              is_reviewed: 0
+              is_answered_later: 0
+              mark: 1
+              negative_mark: 5
+            where:
+              student_id: 261516
+              task_id: 519
+              question_id: 21169
+          headers:
+            Authorization: "Bearer {{ authToken }}" 
+#Update câu hỏi 2
+      - put:
+          url: '/assessment/update-question-stats'
+          afterResponse: "logHeaders"
+          json:
+            update:
+              attempt_no: 1
+              round: 1
+              answer: '["11 cm\\({^3}\\)"]'
+              score: 0
+              time_spent: 169000
+              is_correct: 0
+              is_hint_taken: 0
+              is_explanation_viewed: 0
+              medium_id: 1
+              explanation_time: 0
+              hint_time: 0
+              is_submitted: 1
+              is_translation_viewed: 0
+              start_time: '2024-01-18 12:05:55.000'
+              end_time: '2024-01-18 12:08:45.000'
+              is_skipped: 0
+              total_time_spent: 170000
+              max_score: 0
+              is_reviewed: 0
+              is_answered_later: 0
+              mark: 2
+              negative_mark: 10
+            where:
+              student_id: 261516
+              task_id: 519
+              question_id: 21064
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+#Update câu hỏi 3
+      - put:
+          url: '/assessment/update-question-stats'
+          afterResponse: "logHeaders"
+          json:
+            update:
+              attempt_no: 1
+              round: 1
+              answer: '["\\(\\frac{5}{11}\\)"]'
+              score: 0
+              time_spent: 5000
+              is_correct: 1
+              is_hint_taken: 0
+              is_explanation_viewed: 0
+              medium_id: 1
+              explanation_time: 0
+              hint_time: 0
+              is_submitted: 1
+              is_translation_viewed: 0
+              start_time: '2024-01-18 12:08:45.000'
+              end_time: '2024-01-18 12:08:51.000'
+              is_skipped: 0
+              total_time_spent: 6000
+              max_score: 0
+              is_reviewed: 0
+              is_answered_later: 0
+              mark: 3
+              negative_mark: 5
+            where:
+              student_id: 261516
+              task_id: 519
+              question_id: 21141
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+    

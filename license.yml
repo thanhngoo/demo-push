@@ -1,0 +1,481 @@
+config:
+  http:
+    defaults:
+      headers:
+        Authorization: "Bearer {{ authToken }}"
+  environments:
+    dev:
+      target: "http://test-cg-api.cgslate.com:3000/api"
+      phases:
+        - duration: 1
+          arrivalRate: 1
+          maxVusers: 50
+          name: "Khoi Le {{ $environment }}"
+      payload:
+        # path is relative to the location of the test script
+        path: "login.{{ $environment }}.csv"
+        fields:
+          - "studentCode"
+          - "studentPassword"
+          - "programName"
+        cast: false
+        skipHeader: true
+        # loadAll: true
+        delimiter: ","
+        skipEmptyLines: true
+        # name: loginStudent # refer to the data as "loginStudent"
+      processor: "./testing.{{ $environment }}.js"
+
+    prod_test:
+      target: "https://test-streaming-api.cgslate.com/api"
+      phases:
+        - duration: 1
+          arrivalRate: 1
+          maxVusers: 50
+          name: "Khoi Le prod_test"
+      processor: "./"
+
+    prod:
+      target: "https://test-streaming-api.cgslate.com/api"
+      phases:
+        - duration: 1
+          arrivalRate: 1
+          maxVusers: 50
+          name: "Khoi Le prod"
+
+scenarios:
+  - beforeScenario: "beforeScenario"
+    afterScenario: "afterScenario"
+    flow:
+      - log: "Current environment is set to: {{ $environment }}"
+      # - loop:
+      #   - post:
+      #       url: "//student/sign-in"
+      #       beforeRequest: "logInputHeaders"
+      #       afterResponse: "logHeaders"
+      #       json:
+      #         programName: "{{ $loopElement.programName }}"
+      #         studentCode: "{{ $loopElement.studentCode }}"
+      #         studentPassword: "{{ $loopElement.studentPassword }}"
+      #       capture:
+      #         json: $.authToken
+      #         as: authToken
+      #   over: loginStudent
+
+      - post:
+          url: "/license/authenticate"
+          afterResponse: "logHeaders"
+          beforeRequest: "logInputHeaders"
+          json:
+            licenseCode: 9A77P6
+            programName: P09
+            advertId: 32a4cc56-1a9b-47c1-b41e-805782242373
+            serialNumber: II10OA0440
+            imei: "819746054122333"
+          capture:
+            json: $.authToken
+            as: authToken
+      - post:
+          url: "/app-version/latest"
+          afterResponse: "logHeaders"
+          json:
+            currentVersionCode: 201
+            packageName: com.convegenius.app
+            currentChecksum: 8b82afc0ab43ab6fc46729d21e7459e29d297904059de0b271baf606aa662241
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/card/validate"
+          afterResponse: "logHeaders"
+          json:
+            publicKey: |
+              MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw1aBqp4wM0+K2gpBmwEQLpv9n+Dh7x+u
+              KI4oRzu8zmTE5uKFO8f4ZMU0qKKlx7RrcVpFBuSMW7RuyDeUHndCh7d0Y3nrh0VG4F4c6n0xd7Ba
+              Hmi9+XLk2uHJtv3hJWknLCRThWOoWKusMFNtEmCBLdkRT1Ked7Is7E2mWe4zIXfSMNLh/fFR+99S
+              Wb0y0NHlzGMliE4oLht5tI3u0oSV9dvhu0VT5iinM7I6sDHdfyOotaDXtJ0x3ATZeRtvsvIBx/df
+              t4wN7505rAy81s2Esh25DW53e7j/T0m3iUlbg+MqWcRPMJn9fOH9kuPiwzXg1Ii2uDEGfEm/NqgC
+              HGUxCwIDAQAB
+            referenceKey: TUw0SjM1WjRGRzlIQzFPSg==
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/device/current-card-status"
+          afterResponse: "logHeaders"
+          json:
+            is_verified_card: false
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/content-sync/lo"
+          afterResponse: "logHeaders"
+          json:
+            startId: -1
+            lastUpdated: "1990-01-01 00:00:00"
+            syncStartTime: "2024-01-25 09:36:56"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/content-sync/eol"
+          afterResponse: "logHeaders"
+          json:
+            startId: -1
+            lastUpdated: "1990-01-01 00:00:00"
+            syncStartTime: "2024-01-25 09:36:56"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/content-sync/medium"
+          afterResponse: "logHeaders"
+          json:
+            startId: -1
+            lastUpdated: "1990-01-01 00:00:00"
+            syncStartTime: "2024-01-25 09:36:56"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/content-sync/question-medium-mapping"
+          afterResponse: "logHeaders"
+          json:
+            startId: -1
+            lastUpdated: "1990-01-01 00:00:00"
+            syncStartTime: "2024-01-25 09:36:56"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/content-sync/chapter-dependencies"
+          afterResponse: "logHeaders"
+          json:
+            startId: -1
+            lastUpdated: "1990-01-01 00:00:00"
+            syncStartTime: "2024-01-25 09:36:56"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/content-sync/content-lo-mapping"
+          afterResponse: "logHeaders"
+          json:
+            startId: -1
+            lastUpdated: "1990-01-01 00:00:00"
+            syncStartTime: "2024-01-25 09:36:56"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/content-sync/content-question-mapping"
+          afterResponse: "logHeaders"
+          json:
+            startId: -1
+            lastUpdated: "1990-01-01 00:00:00"
+            syncStartTime: "2024-01-25 09:36:56"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/content-sync/content"
+          afterResponse: "logHeaders"
+          json:
+            startId: -1
+            lastUpdated: "1990-01-01 00:00:00"
+            syncStartTime: "2024-01-25 09:36:56"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - get:
+          url: "/student/static-avatar"
+          afterResponse: "logHeaders"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - get:
+          url: "/student/get-device-profiles"
+          afterResponse: "logHeaders"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-user-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-completion"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-chapter-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-question-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-task-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-formative-eol-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-session-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-diagnostic-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-evaluative-lo-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-session-module-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-stage-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-subject-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-video-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-book-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/reverse-sync/student-game-stats"
+          afterResponse: "logHeaders"
+          json:
+            startId: 0
+            studentId: 262738
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/admin/sign-in"
+          afterResponse: "logHeaders"
+          json:
+            adminCode: ADM103
+            adminPin: "1234"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/device/current"
+          afterResponse: "logHeaders"
+          json:
+            serial_number: II10OA0440
+            imei: "819746054122333"
+            app_version: "201"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/admin/subjectwise-class-list"
+          afterResponse: "logHeaders"
+          json:
+            adminCode: ADM103
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/support/signed-device-log"
+          afterResponse: "logHeaders"
+          json:
+            file_name: console_logs.txt
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/user-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - get:
+          url: "/student/get-device-profiles"
+          afterResponse: "logHeaders"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/completion"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/chapter-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/question-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/task-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/formative-eol-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/session-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/diagnostic-question-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/diagnostic-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/evaluative-lo-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/session-module-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/stage-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/subject-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/video-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/book-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/game-stats"
+          afterResponse: "logHeaders"
+          json:
+            statsData: []
+            isLastBatch: 1
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+      - post:
+          url: "/forward-sync/sync-complete"
+          afterResponse: "logHeaders"
+          headers:
+            Authorization: "Bearer {{ authToken }}"
+
+hooks:
+  afterScript: "finishedScript"

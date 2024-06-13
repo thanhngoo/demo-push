@@ -1,0 +1,72 @@
+
+config:
+  http:
+    defaults:
+      headers:
+        Authorization: 'Bearer {{ authToken }}'
+  environments:
+    dev:
+      target: "https://test-idp-api.cgslate.com/api/"
+      phases:
+        - duration: 1
+          arrivalRate: 1
+          maxVusers: 50
+          name: "Thanh {{ $environment }}"
+      payload:
+        # path is relative to the location of the test script
+        path: "login.{{ $environment }}.csv"
+        fields:
+          - "studentCode"
+          - "studentPassword"
+          - "programName"
+        cast: false
+        skipHeader : true
+        # loadAll: true
+        delimiter: ","
+        skipEmptyLines: true
+        # name: loginStudent # refer to the data as "loginStudent"
+      processor: "./testing.{{ $environment }}.js"
+
+    prod_test:
+      target: "https://test-streaming-api.cgslate.com/api"
+      phases:
+        - duration: 1
+          arrivalRate: 1
+          maxVusers: 50
+          name: "Thanh Ngo prod_test"
+
+    prod:
+      target: "https://test-streaming-api.cgslate.com/api"
+      phases:
+        - duration: 1
+          arrivalRate: 1
+          maxVusers: 50
+          name: "Thanh Ngo prod"
+    
+scenarios:
+  - flow:
+      - log: "Current environment is set to: {{ $environment }}"
+      # - loop:
+      #   - post:
+      #       url: "//student/sign-in"
+      #       beforeRequest: "logInputHeaders"
+      #       afterResponse: "logHeaders"
+      #       json:
+      #         programName: "{{ $loopElement.programName }}"
+      #         studentCode: "{{ $loopElement.studentCode }}"
+      #         studentPassword: "{{ $loopElement.studentPassword }}"
+      #       capture: 
+      #         json: $.authToken
+      #         as: authToken
+      #   over: loginStudent
+
+      - post:
+          url: "/login"
+          afterResponse: "logHeaders"
+          # beforeRequest: "logInputHeaders"
+          json:
+            username: superAdmin
+            password: d81idAdkpqm6cBdzpmq!
+          capture: 
+            json: $.authToken
+            as: authToken
